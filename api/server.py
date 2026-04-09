@@ -51,6 +51,25 @@ app.add_middleware(
 OUTPUT_DIR = PROJECT_ROOT / "output"
 ENV_PATH = PROJECT_ROOT / ".env"
 
+
+@app.get("/")
+async def root():
+    """Root endpoint — API info."""
+    return {
+        "name": "BharatIntel API",
+        "version": "1.0.0",
+        "description": "AI-Powered Daily Intelligence Briefing System",
+        "frontend": "https://frontend-ruddy-kappa-79.vercel.app",
+        "endpoints": {
+            "GET /api/status": "Pipeline status",
+            "POST /api/generate-brief": "Trigger news briefing",
+            "GET /api/get-latest": "Latest briefing JSON",
+            "GET /api/download-pdf": "Download briefing PDF",
+            "GET /api/settings": "View API key config",
+            "POST /api/settings": "Update API keys",
+        },
+    }
+
 # Simple in-memory state for pipeline status
 _pipeline_state = {
     "running": False,

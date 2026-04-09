@@ -48,7 +48,13 @@ export default function App() {
       const data = await getLatestBriefing();
       setBriefing(data);
     } catch (err) {
-      setError(err.message);
+      if (err.message === "Failed to fetch") {
+        setError(
+          "Could not reach the server — it may be waking up (free tier cold start). Please try again in ~30 seconds. Click ⚙ Settings to configure your API keys."
+        );
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }

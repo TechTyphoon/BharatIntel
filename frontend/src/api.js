@@ -1,7 +1,19 @@
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000/api";
 
+async function resilientFetch(url, options = {}, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fetch(url, options);
+    } catch (err) {
+      if (i === retries) throw err;
+      // Backend cold-starting — wait and retry
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+  }
+}
+
 export async function getLatestBriefing() {
-  const res = await fetch(`${API_BASE}/get-latest`);
+  const res = await resilientFetch(`${API_BASE}/get-latest`);
   if (!res.ok) {
     if (res.status === 404) return null;
     throw new Error(`Failed to fetch briefing: ${res.status}`);
@@ -10,7 +22,7 @@ export async function getLatestBriefing() {
 }
 
 export async function generateBrief() {
-  const res = await fetch(`${API_BASE}/generate-brief`, { method: "POST" });
+  const res = await resilientFetch(`${API_BASE}/generate-brief`, { method: "POST" });
   if (res.status === 409) {
     throw new Error("Pipeline is already running.");
   }
@@ -37,7 +49,7 @@ export async function generateBrief() {
 }
 
 export async function getStatus() {
-  const res = await fetch(`${API_BASE}/status`);
+  const res = await resilientFetch(`${API_BASE}/status`);
   if (!res.ok) throw new Error("Failed to fetch status");
   return res.json();
 }
@@ -49,13 +61,13 @@ export function getPdfUrl() {
 // ── Settings / API Key Management ──────────────────────────────────
 
 export async function getSettings() {
-  const res = await fetch(`${API_BASE}/settings`);
+  const res = await resilientFetch(`${API_BASE}/settings`);
   if (!res.ok) throw new Error("Failed to fetch settings");
   return res.json();
 }
 
 export async function saveSettings(keys) {
-  const res = await fetch(`${API_BASE}/settings`, {
+  const res = await resilientFetch(`${API_BASE}/settings`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ keys }),
@@ -68,7 +80,7 @@ export async function saveSettings(keys) {
 }
 
 export async function validateKey(provider, key) {
-  const res = await fetch(`${API_BASE}/settings/validate`, {
+  const res = await resilientFetch(`${API_BASE}/settings/validate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ provider, key }),
