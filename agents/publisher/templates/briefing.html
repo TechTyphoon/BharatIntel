@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }} — {{ date }}</title>
+<style>
+/* ── Reset & Base ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+@page {
+    size: {{ page_size }};
+    margin: {{ margin }};
+    @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        font-size: 8pt;
+        color: #999;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+}
+
+body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    background: #fff;
+}
+
+a { color: #1a5276; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Header ────────────────────────────────────────────────────── */
+.header {
+    border-bottom: 3px solid #1a5276;
+    padding-bottom: 12pt;
+    margin-bottom: 16pt;
+}
+
+.header-title {
+    font-size: 24pt;
+    font-weight: 700;
+    color: #1a5276;
+    letter-spacing: 0.5pt;
+}
+
+.header-subtitle {
+    font-size: 10pt;
+    color: #666;
+    margin-top: 3pt;
+}
+
+.header-date {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #333;
+    margin-top: 6pt;
+}
+
+/* ── Executive Summary ─────────────────────────────────────────── */
+.executive {
+    background: #f0f4f8;
+    border-left: 4pt solid #1a5276;
+    padding: 12pt 14pt;
+    margin-bottom: 18pt;
+    page-break-inside: avoid;
+}
+
+.executive-heading {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #1a5276;
+    margin-bottom: 8pt;
+}
+
+.executive-overview {
+    font-size: 10pt;
+    line-height: 1.6;
+    margin-bottom: 10pt;
+    white-space: pre-line;
+}
+
+.executive-developments {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 8pt;
+}
+
+.executive-developments li {
+    position: relative;
+    padding-left: 14pt;
+    margin-bottom: 4pt;
+    font-size: 9.5pt;
+    line-height: 1.5;
+}
+
+.executive-developments li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: #1a5276;
+    font-weight: 700;
+}
+
+.tone-badge {
+    display: inline-block;
+    background: #1a5276;
+    color: #fff;
+    padding: 2pt 8pt;
+    border-radius: 3pt;
+    font-size: 8pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    margin-top: 6pt;
+}
+
+/* ── Headlines ─────────────────────────────────────────────────── */
+.headlines {
+    margin-bottom: 20pt;
+    page-break-inside: avoid;
+}
+
+.headlines-heading {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #1a5276;
+    border-bottom: 1.5pt solid #ddd;
+    padding-bottom: 4pt;
+    margin-bottom: 10pt;
+}
+
+.headline-item {
+    margin-bottom: 8pt;
+    padding-left: 4pt;
+}
+
+.headline-title {
+    font-size: 10.5pt;
+    font-weight: 700;
+    color: #222;
+}
+
+.headline-oneliner {
+    font-size: 9pt;
+    color: #555;
+    margin-top: 1pt;
+}
+
+.headline-source {
+    font-size: 8pt;
+    color: #888;
+}
+
+/* ── Sections ──────────────────────────────────────────────────── */
+.section {
+    margin-bottom: 18pt;
+    page-break-inside: avoid;
+}
+
+.section-heading {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #1a5276;
+    border-bottom: 1pt solid #ddd;
+    padding-bottom: 3pt;
+    margin-bottom: 8pt;
+}
+
+.section-meta {
+    font-size: 8pt;
+    color: #999;
+    float: right;
+    font-weight: 400;
+}
+
+.section-summary {
+    font-size: 10pt;
+    line-height: 1.6;
+    margin-bottom: 8pt;
+    text-align: justify;
+}
+
+.section-takeaways {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 6pt;
+}
+
+.section-takeaways li {
+    position: relative;
+    padding-left: 14pt;
+    margin-bottom: 3pt;
+    font-size: 9pt;
+    line-height: 1.45;
+    color: #333;
+}
+
+.section-takeaways li::before {
+    content: "●";
+    position: absolute;
+    left: 0;
+    color: #1a5276;
+    font-size: 7pt;
+    top: 1pt;
+}
+
+.section-sources {
+    font-size: 7.5pt;
+    color: #aaa;
+    margin-top: 4pt;
+}
+
+/* ── Footer ────────────────────────────────────────────────────── */
+.footer {
+    margin-top: 24pt;
+    padding-top: 10pt;
+    border-top: 1pt solid #ddd;
+    font-size: 7.5pt;
+    color: #999;
+    text-align: center;
+}
+
+.footer-token-usage {
+    font-size: 7pt;
+    color: #bbb;
+    margin-top: 3pt;
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────── -->
+<div class="header">
+    <div class="header-title">{{ title }}</div>
+    <div class="header-subtitle">AI-Powered Daily Intelligence Briefing</div>
+    <div class="header-date">{{ date_display }}</div>
+</div>
+
+<!-- ── Executive Summary ───────────────────────────────────────── -->
+{% if executive_summary %}
+<div class="executive">
+    <div class="executive-heading">Executive Summary</div>
+    <div class="executive-overview">{{ executive_summary.overview }}</div>
+    {% if executive_summary.key_developments %}
+    <ul class="executive-developments">
+        {% for dev in executive_summary.key_developments %}
+        <li>{{ dev }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% if executive_summary.tone and executive_summary.tone != "neutral" %}
+    <span class="tone-badge">Tone: {{ executive_summary.tone }}</span>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- ── Top Headlines ───────────────────────────────────────────── -->
+{% if headlines %}
+<div class="headlines">
+    <div class="headlines-heading">Top Headlines</div>
+    {% for headline in headlines %}
+    <div class="headline-item">
+        <div class="headline-title">
+            {% if headline.url %}<a href="{{ headline.url }}">{{ headline.title }}</a>{% else %}{{ headline.title }}{% endif %}
+        </div>
+        <div class="headline-oneliner">{{ headline.oneliner }}</div>
+        {% if headline.source %}
+        <div class="headline-source">{{ headline.source }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── Sections ────────────────────────────────────────────────── -->
+{% for section in sections %}
+<div class="section">
+    <div class="section-heading">
+        {{ section.category }}
+        <span class="section-meta">{{ section.article_count }} source{{ "s" if section.article_count != 1 else "" }}</span>
+    </div>
+    <div class="section-summary">{{ section.summary }}</div>
+    {% if section.key_takeaways %}
+    <ul class="section-takeaways">
+        {% for takeaway in section.key_takeaways %}
+        <li>{{ takeaway }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% if section.article_urls %}
+    <div class="section-sources">
+        Sources:
+        {% for url in section.article_urls %}
+        <a href="{{ url }}">[{{ loop.index }}]</a>{{ " " if not loop.last else "" }}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+
+<!-- ── Footer ──────────────────────────────────────────────────── -->
+<div class="footer">
+    Generated by {{ title }} v{{ version }} — {{ generated_at }}
+    {% if token_usage %}
+    <div class="footer-token-usage">
+        LLM calls: {{ token_usage.get("total_calls", 0) }} |
+        Prompt tokens: {{ token_usage.get("total_prompt_tokens", 0) | default(0) }} |
+        Completion tokens: {{ token_usage.get("total_completion_tokens", 0) | default(0) }}
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

@@ -1,0 +1,117 @@
+# ── News Sources ─────────────────────────────────────────────────────
+# Each source has: name, type (rss|api|web), url/config, enabled flag, categories
+#
+# Required categories (per assignment):
+#   1. geopolitics       — Geopolitics & International Affairs
+#   2. technology        — Technology & Artificial Intelligence
+#   3. indian_politics   — Indian National Politics & Governance
+#   4. science           — Science & New Discoveries
+#   5. civilisation      — Civilisation, Culture & Society
+#   6. editors_picks     — (auto-assigned by LLM for exceptional stories)
+#
+# To add a new source: append an entry below. Collector auto-discovers enabled sources.
+
+sources:
+  # ── Geopolitics & International Affairs ──────────────────────────
+  - name: "Reuters Top News"
+    type: rss
+    url: "https://feeds.reuters.com/reuters/topNews"
+    enabled: true
+    categories: ["geopolitics"]
+
+  - name: "Al Jazeera"
+    type: rss
+    url: "https://www.aljazeera.com/xml/rss/all.xml"
+    enabled: true
+    categories: ["geopolitics"]
+
+  - name: "BBC World"
+    type: rss
+    url: "https://feeds.bbci.co.uk/news/world/rss.xml"
+    enabled: true
+    categories: ["geopolitics"]
+
+  - name: "GNews World"
+    type: api
+    provider: gnews
+    params:
+      country: "us"
+      lang: "en"
+      max_results: 30
+    enabled: true
+    categories: ["geopolitics"]
+
+  # ── Technology & Artificial Intelligence ─────────────────────────
+  - name: "Reuters Technology"
+    type: rss
+    url: "https://feeds.reuters.com/reuters/technologyNews"
+    enabled: true
+    categories: ["technology"]
+
+  - name: "Ars Technica"
+    type: rss
+    url: "https://feeds.arstechnica.com/arstechnica/features"
+    enabled: true
+    categories: ["technology"]
+
+  - name: "Hacker News Front Page"
+    type: web
+    url: "https://news.ycombinator.com/"
+    parser: hackernews
+    enabled: true
+    categories: ["technology"]
+
+  # ── Indian National Politics & Governance ────────────────────────
+  - name: "The Hindu National"
+    type: rss
+    url: "https://www.thehindu.com/news/national/feeder/default.rss"
+    enabled: true
+    categories: ["indian_politics"]
+
+  - name: "NDTV Top Stories"
+    type: rss
+    url: "https://feeds.feedburner.com/ndtvnews-top-stories"
+    enabled: true
+    categories: ["indian_politics"]
+
+  - name: "GNews India"
+    type: api
+    provider: gnews
+    params:
+      country: "in"
+      lang: "en"
+      max_results: 30
+    enabled: true
+    categories: ["indian_politics"]
+
+  # ── Science & New Discoveries ────────────────────────────────────
+  - name: "Nature News"
+    type: rss
+    url: "https://www.nature.com/nature.rss"
+    enabled: true
+    categories: ["science"]
+
+  - name: "Science Daily"
+    type: rss
+    url: "https://www.sciencedaily.com/rss/all.xml"
+    enabled: true
+    categories: ["science"]
+
+  # ── Civilisation, Culture & Society ──────────────────────────────
+  - name: "The Hindu Culture"
+    type: rss
+    url: "https://www.thehindu.com/entertainment/feeder/default.rss"
+    enabled: true
+    categories: ["civilisation"]
+
+  - name: "BBC Culture"
+    type: rss
+    url: "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml"
+    enabled: true
+    categories: ["civilisation"]
+
+  - name: "Reuters Business"
+    type: rss
+    url: "https://feeds.reuters.com/reuters/businessNews"
+    enabled: true
+    categories: ["geopolitics", "technology"]

@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.env
+logs/
+*.egg-info/
+dist/
+build/
+.venv/
+.history/
+.vite/
+frontend/node_modules/
+frontend/dist/
+JIF-AI Generalist Assignment.pdf
+
+# Ignore generated output (changes each run), keep only the sample deliverable
+output/*
+!output/sample/

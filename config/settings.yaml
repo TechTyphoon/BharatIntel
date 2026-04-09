@@ -1,0 +1,56 @@
+# ── Global Settings ───────────────────────────────────────────────────
+app:
+  name: "BharatIntel"
+  version: "1.0.0"
+  log_dir: "logs"
+  output_dir: "output"
+
+# ── Collection Settings ──────────────────────────────────────────────
+collector:
+  timeout_seconds: 15
+  max_articles_per_source: 15
+  user_agent: "BharatIntel/1.0 (News Aggregator)"
+  concurrent_sources: 10
+
+# ── Curator Settings ─────────────────────────────────────────────────
+curator:
+  min_relevance_score: 4
+  top_n_articles: 25
+  dedup_similarity_threshold: 0.85
+
+# ── Ranker Settings ──────────────────────────────────────────────────
+ranker:
+  batch_size: 10
+  diversity_penalty: 0.15    # 0.0 = no diversity enforcement, higher = stronger
+  min_per_category: 1        # Articles before diversity penalty kicks in
+  weights:
+    # LLM dimensions (raw 1-10, normalized internally)
+    relevance: 0.25
+    impact: 0.20
+    novelty: 0.15
+    timeliness: 0.10
+    # Heuristic signals (0-1 already)
+    recency: 0.15
+    source_authority: 0.10
+    content_richness: 0.05
+
+# ── Summarizer Settings ─────────────────────────────────────────────
+summarizer:
+  max_sections: 8
+  top_headlines: 5
+  token_budget: 50000           # Max total tokens (prompt + completion) per run
+  min_summary_length: 80        # Reject section summaries shorter than this (chars)
+  takeaways_per_section: 3      # Target key takeaways per section (2-5 range)
+
+# ── Publisher Settings ───────────────────────────────────────────────
+publisher:
+  template: "agents/publisher/templates/briefing.html"
+  pdf_backend: "reportlab"       # "reportlab" (pure Python) or "weasyprint" (HTML→PDF)
+  pdf_options:
+    page_size: "A4"
+    margin: "1.5cm"
+
+# ── Pipeline Settings ───────────────────────────────────────────────
+pipeline:
+  min_articles_to_proceed: 5
+  schedule_cron: "0 6 * * *"  # Daily at 6 AM
