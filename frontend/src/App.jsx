@@ -7,7 +7,7 @@ import StatusBar from "./components/StatusBar";
 import Loader from "./components/Loader";
 import Empty from "./components/Empty";
 import Settings from "./components/Settings";
-import { getLatestBriefing, generateBrief, getPdfUrl } from "./api";
+import { getLatestBriefing, generateBrief, getStatus, getPdfUrl } from "./api";
 import "./App.css";
 
 const SECTION_ORDER = [
@@ -39,7 +39,51 @@ export default function App() {
 
   useEffect(() => {
     fetchBriefing();
+    checkRunningPipeline();
   }, []);
+
+  async function checkRunningPipeline() {
+    try {
+      const st = await getStatus();
+      if (st.pipeline_running) {
+        setGenerating(true);
+        setStatusMsg("Pipeline is already running… Waiting for it to finish.");
+        pollUntilDone();
+      }
+    } catch {
+      // ignore — fetchBriefing will handle errors
+    }
+  }
+
+  async function pollUntilDone() {
+    while (true) {
+      await new Promise((r) => setTimeout(r, 3000));
+      try {
+        const st = await getStatus();
+        if (!st.pipeline_running) {
+          if (st.last_error) {
+            setError(st.last_error);
+            setStatusMsg(null);
+          } else {
+            const result = st.last_result || {};
+            if (result.status === "partial") {
+              setStatusMsg(
+                (result.message || "Briefing generated with partial content.") +
+                  " ⚠️ Some sections may use fallback content — check Settings for API key issues."
+              );
+            } else {
+              setStatusMsg(result.message || "Briefing generated successfully.");
+            }
+            await fetchBriefing();
+          }
+          setGenerating(false);
+          return;
+        }
+      } catch {
+        // keep polling
+      }
+    }
+  }
 
   async function fetchBriefing() {
     setLoading(true);
@@ -65,17 +109,23 @@ export default function App() {
     setError(null);
     setStatusMsg("Running pipeline… This may take a few minutes.");
     try {
-      const result = await generateBrief();
-      if (result._partial) {
+      const res = await generateBrief();
+      // generateBrief() polls internally and returns when done
+      if (res._partial) {
         setStatusMsg(
-          (result.message || "Briefing generated with partial content.") +
+          (res.message || "Briefing generated with partial content.") +
             " ⚠️ Some sections may use fallback content — check Settings for API key issues."
         );
       } else {
-        setStatusMsg(result.message || "Briefing generated successfully.");
+        setStatusMsg(res.message || "Briefing generated successfully.");
       }
       await fetchBriefing();
     } catch (err) {
+      if (err.message === "Pipeline is already running.") {
+        setStatusMsg("Pipeline is already running… Waiting for it to finish.");
+        pollUntilDone();
+        return;
+      }
       setError(err.message);
       setStatusMsg(null);
     } finally {
