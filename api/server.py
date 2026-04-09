@@ -38,9 +38,12 @@ load_dotenv(PROJECT_ROOT / ".env")
 
 app = FastAPI(title="BharatIntel API", version="1.0.0")
 
+_default_origins = "http://localhost:5173,http://127.0.0.1:5173"
+_cors_origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", _default_origins).split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -49,7 +52,12 @@ OUTPUT_DIR = PROJECT_ROOT / "output"
 ENV_PATH = PROJECT_ROOT / ".env"
 
 # Simple in-memory state for pipeline status
-_pipeline_state = {"running": False, "last_error": None, "last_run": None}
+_pipeline_state = {
+    "running": False,
+    "last_error": None,
+    "last_run": None,
+    "last_result": None,
+}
 
 # Keys we allow users to configure via the UI
 ALLOWED_KEYS = {
@@ -149,15 +157,8 @@ async def get_latest():
     return JSONResponse(content=data)
 
 
-@app.post("/api/generate-brief")
-async def generate_brief():
-    """Trigger a full pipeline run (collect → curate → summarize → publish)."""
-    if _pipeline_state["running"]:
-        raise HTTPException(status_code=409, detail="Pipeline is already running.")
-
-    _pipeline_state["running"] = True
-    _pipeline_state["last_error"] = None
-
+async def _run_pipeline_bg() -> None:
+    """Run the pipeline in a background task, updating _pipeline_state."""
     try:
         from core.logger import setup_logging
 
@@ -170,7 +171,6 @@ async def generate_brief():
 
         _pipeline_state["last_run"] = date.today().isoformat()
 
-        # Check if LLM errors occurred (rate limits, auth failures)
         details = result.to_dict()
         llm_warning = _detect_llm_issues(details)
 
@@ -179,35 +179,44 @@ async def generate_brief():
             msg = result.error
             if llm_warning:
                 msg += f" | {llm_warning}"
-            return JSONResponse(
-                status_code=207,
-                content={
-                    "status": "partial",
-                    "message": msg,
-                    "details": details,
-                },
-            )
-
-        msg = f"Briefing generated for {date.today().isoformat()}"
-        if llm_warning:
-            msg += f" | {llm_warning}"
-
-        return {
-            "status": "success",
-            "message": msg,
-            "details": details,
-        }
+            _pipeline_state["last_result"] = {
+                "status": "partial",
+                "message": msg,
+                "details": details,
+            }
+        else:
+            msg = f"Briefing generated for {date.today().isoformat()}"
+            if llm_warning:
+                msg += f" | {llm_warning}"
+            _pipeline_state["last_result"] = {
+                "status": "success",
+                "message": msg,
+                "details": details,
+            }
     except Exception as exc:
         _pipeline_state["last_error"] = str(exc)
-        err_str = str(exc).lower()
-        if "rate" in err_str or "limit" in err_str or "429" in err_str or "quota" in err_str:
-            raise HTTPException(
-                status_code=500,
-                detail="API keys are rate-limited. Please wait a few minutes or add your own API key via the ⚙ Settings button.",
-            )
-        raise HTTPException(status_code=500, detail=str(exc))
+        _pipeline_state["last_result"] = {
+            "status": "error",
+            "message": str(exc),
+        }
     finally:
         _pipeline_state["running"] = False
+
+
+@app.post("/api/generate-brief")
+async def generate_brief():
+    """Trigger a full pipeline run (collect → curate → summarize → publish)."""
+    if _pipeline_state["running"]:
+        raise HTTPException(status_code=409, detail="Pipeline is already running.")
+
+    _pipeline_state["running"] = True
+    _pipeline_state["last_error"] = None
+    _pipeline_state["last_result"] = None
+
+    # Launch pipeline as a background async task — returns immediately
+    asyncio.create_task(_run_pipeline_bg())
+
+    return {"status": "accepted", "message": "Pipeline started. Poll /api/status for progress."}
 
 
 def _detect_llm_issues(details: dict) -> str:
@@ -246,6 +255,7 @@ async def status():
         "last_run": _pipeline_state["last_run"],
         "last_error": _pipeline_state["last_error"],
         "latest_briefing": latest.name if latest else None,
+        "last_result": _pipeline_state.get("last_result"),
     }
 
 

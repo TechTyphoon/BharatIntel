@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: bharatintel-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: CORS_ORIGINS
+        value: https://frontend-ruddy-kappa-79.vercel.app,http://localhost:5173,http://127.0.0.1:5173
+      - key: GNEWS_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: XAI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false

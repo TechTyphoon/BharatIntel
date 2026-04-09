@@ -14,16 +14,26 @@ export async function generateBrief() {
   if (res.status === 409) {
     throw new Error("Pipeline is already running.");
   }
-  // 207 = partial success (fallback content used)
-  if (res.status === 207) {
-    const body = await res.json().catch(() => ({}));
-    return { ...body, _partial: true };
-  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail || `Pipeline failed: ${res.status}`);
   }
-  return res.json();
+
+  // Pipeline started — poll status until completion
+  while (true) {
+    await new Promise((r) => setTimeout(r, 3000));
+    const st = await getStatus();
+    if (!st.pipeline_running) {
+      if (st.last_error) {
+        throw new Error(st.last_error);
+      }
+      const result = st.last_result || {};
+      if (result.status === "partial") {
+        return { ...result, _partial: true };
+      }
+      return result.status ? result : { status: "success", message: "Briefing generated successfully." };
+    }
+  }
 }
 
 export async function getStatus() {

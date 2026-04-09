@@ -1,0 +1,14 @@
+# .dockerignore — keep Docker build context small
+.venv/
+.vite/
+.git/
+.history/
+__pycache__/
+*.pyc
+.env
+logs/
+frontend/node_modules/
+frontend/dist/
+output/briefing_*
+output/test/
+JIF-AI Generalist Assignment.pdf
